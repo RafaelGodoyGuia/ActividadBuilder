@@ -235,4 +235,4 @@ ActividadBuilder/
 * Repositorio: [RafaelGodoyGuia/ActividadBuilder](https://github.com/RafaelGodoyGuia/ActividadBuilder)
 
 ---
-*Readme redactado por Antigravity CLI*
+*Readme redactado por Antigravity CLI sobre el proyecto de Rafael Godoy Guía*
