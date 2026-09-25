@@ -1,79 +1,238 @@
-# Actividad: Patrón de Diseño Builder
+# Actividad: Patrón de Diseño Builder (GoF)
 
-Este repositorio contiene la implementación práctica de la actividad sobre el patrón de diseño creacional **Builder** en Java. El objetivo principal es desacoplar el proceso de construcción de un objeto complejo (en este caso, una `Pantalla` de interfaz de usuario) de su representación particular, permitiendo que el mismo proceso de construcción pueda producir diferentes representaciones.
+[![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
+[![Design Pattern](https://img.shields.io/badge/Pattern-Builder_(GoF)-00599C?style=for-the-badge)](https://refactoring.guru/es/design-patterns/builder)
+[![Course](https://img.shields.io/badge/Asignatura-MTP-green?style=for-the-badge)](#)
 
----
+Este repositorio contiene la implementación práctica y profesional del patrón de diseño creacional **Builder** (*Constructor*), siguiendo las directrices clásicas de la literatura del *Gang of Four* (GoF) en **Java**.
 
-## 📌 1. Patrón Builder (GoF)
-
-### Objetivo
-Construir objetos complejos paso a paso guiados por un director, separando la lógica y el orden de ensamblado de los datos específicos que componen cada tipo de pantalla (`Perfil` y `Ajustes`).
-
----
-
-### 🧩 Estructura y Componentes del Patrón
-
-El diseño se compone de las partes fundamentales definidas por la especificación clásica del *Gang of Four* (GoF):
-
-1. **Producto (`Pantalla`)**:
-   Representa el objeto complejo resultante de la construcción. Contiene los elementos de la interfaz (`titulo`, `cabecera`, `contenido`, `botonPrincipal`), sus respectivos getters/setters y el método de visualización `mostrar()`.
-
-2. **Builder Abstracto (`PantallaBuilder`)**:
-   Interfaz que declara los pasos estándar necesarios para construir cualquier pantalla:
-   ```java
-   public interface PantallaBuilder {
-       public void construirTitulo();
-       public void construirCabecera();
-       public void construirContenido();
-       public void construirBoton();
-       public Pantalla getPantalla();
-   }
-   ```
-
-3. **Builders Concretos (`PerfilBuilder` y `AjustesBuilder`)**:
-   Implementaciones que construyen y ensamblan las partes del producto concreto:
-   * **Gestión de Ciclo de Vida y Reseteo (`reset`)**: Cada builder administra una instancia interna de `Pantalla` y, al entregarla en `getPantalla()`, reinicializa su estado interno para permitir reutilizaciones limpias sin fugas de estado mutable (*aliasing*).
-   * **Ensamblado especializado**: Cada builder asigna sus propios textos y componentes temáticos a la pantalla.
-
-4. **Director (`DirectorPantalla`)**:
-   Clase responsable de orquestar la secuencia ordenada de montaje (la "receta"):
-   ```java
-   public void construirPantalla() {
-       builder.construirTitulo();
-       builder.construirCabecera();
-       builder.construirContenido();
-       builder.construirBoton();
-   }
-   ```
-   * Permite inyectar el builder mediante constructor o cambiarlo en tiempo de ejecución a través de `setBuilder(PantallaBuilder builder)`, validando la no nulidad mediante `Objects.requireNonNull`.
-
-5. **Cliente (`Main`)**:
-   Configura el builder deseado, se lo entrega al director para orquestar la creación, recupera el producto final y lo muestra por consola.
+El proyecto simula la construcción desacoplada y guiada de interfaces de usuario (`Pantalla`), demostrando cómo un mismo proceso de ensamblado orquestado por un **Director** puede producir diferentes representaciones concretas (`Perfil` y `Ajustes`).
 
 ---
 
-### 💡 Principios de Diseño y Buenas Prácticas Aplicadas
+## 📐 Diagrama de Clases (UML)
 
-* **Principio de Responsabilidad Única (SRP)**:
-  * `DirectorPantalla` solo conoce el orden del algoritmo de construcción.
-  * Los builders concretos solo conocen cómo ensamblar los datos de cada pantalla.
-  * `Pantalla` solo se encarga de almacenar y mostrar su estado.
-* **Principio Abierto/Cerrado (OCP)**: Se pueden añadir nuevas pantallas (como `LoginBuilder` o `DashboardBuilder`) creando nuevas clases que implementen `PantallaBuilder`, sin tocar el `Director` ni el código existente.
-* **Principio de Inversión de Dependencias (DIP)**: `DirectorPantalla` depende de la abstracción `PantallaBuilder`, nunca de implementaciones concretas.
+```mermaid
+classDiagram
+    direction TB
+
+    class DirectorPantalla {
+        -PantallaBuilder builder
+        +DirectorPantalla(PantallaBuilder builder)
+        +setBuilder(PantallaBuilder builder) void
+        +construirPantalla() void
+    }
+
+    class PantallaBuilder {
+        <<interface>>
+        +construirTitulo() void
+        +construirCabecera() void
+        +construirContenido() void
+        +construirBoton() void
+        +getPantalla() Pantalla
+    }
+
+    class PerfilBuilder {
+        -Pantalla pantalla
+        +PerfilBuilder()
+        +reset() void
+        +construirTitulo() void
+        +construirCabecera() void
+        +construirContenido() void
+        +construirBoton() void
+        +getPantalla() Pantalla
+    }
+
+    class AjustesBuilder {
+        -Pantalla pantalla
+        +AjustesBuilder()
+        +reset() void
+        +construirTitulo() void
+        +construirCabecera() void
+        +construirContenido() void
+        +construirBoton() void
+        +getPantalla() Pantalla
+    }
+
+    class Pantalla {
+        -String titulo
+        -String cabecera
+        -String contenido
+        -String botonPrincipal
+        +setTitulo(String titulo) void
+        +getTitulo() String
+        +setCabecera(String cabecera) void
+        +getCabecera() String
+        +setContenido(String contenido) void
+        +getContenido() String
+        +setBotonPrincipal(String botonPrincipal) void
+        +getBotonPrincipal() String
+        +mostrar() void
+    }
+
+    class Main {
+        +main(String[] args)$ void
+    }
+
+    DirectorPantalla o--> PantallaBuilder : agrega / dirige
+    PerfilBuilder ..|> PantallaBuilder : implementa
+    AjustesBuilder ..|> PantallaBuilder : implementa
+    PerfilBuilder ..> Pantalla : construye
+    AjustesBuilder ..> Pantalla : construye
+    Main ..> DirectorPantalla : coordina
+    Main ..> PantallaBuilder : instancia
+```
 
 ---
 
-## 🚀 Compilación y Ejecución
+## 🧩 Componentes del Patrón
 
-Para compilar y ejecutar el proyecto desde la terminal:
+El diseño se compone de las partes formales del patrón Builder:
+
+### 1. Producto (`Pantalla`)
+Representa el objeto complejo resultante de la construcción. Dispone de campos para encapsular las secciones de una pantalla:
+* `titulo`
+* `cabecera`
+* `contenido`
+* `botonPrincipal`
+
+Incluye además el método `mostrar()` encargado de formatear e imprimir su estado en la consola.
+
+### 2. Builder Abstracto (`PantallaBuilder`)
+Interfaz que define el contrato de construcción independiente del tipo de pantalla. Declara los métodos paso a paso:
+```java
+public interface PantallaBuilder {
+    public void construirTitulo();
+    public void construirCabecera();
+    public void construirContenido();
+    public void construirBoton();
+    public Pantalla getPantalla();
+}
+```
+
+### 3. Builders Concretos (`PerfilBuilder` y `AjustesBuilder`)
+Implementan los pasos de construcción aportando los datos particulares de cada interfaz:
+* **`PerfilBuilder`**: Ensambla los datos del perfil de usuario (nombre, correo, fotografía y botón de edición).
+* **`AjustesBuilder`**: Ensambla las opciones de configuración de la aplicación (idioma, tema, notificaciones y botón de guardado).
+
+Ambos incorporan un mecanismo de ciclo de vida con **`reset()`** que crea una nueva instancia limpia de `Pantalla` cada vez que se entrega el producto terminado en `getPantalla()`.
+
+### 4. Director (`DirectorPantalla`)
+Define el orden y la secuencia de construcción (la "receta"). No conoce los detalles concretos de los textos ni los componentes que se añaden, únicamente orquesta la ejecución:
+```java
+public void construirPantalla() {
+    builder.construirTitulo();
+    builder.construirCabecera();
+    builder.construirContenido();
+    builder.construirBoton();
+}
+```
+
+### 5. Cliente (`Main`)
+Punto de entrada de la aplicación. Instancia los builders concretos, los asocia al director y recupera los productos terminados para su posterior visualización.
+
+---
+
+## 💡 Decisiones de Diseño y Principios SOLID
+
+### 🔄 Gestión de Ciclo de Vida del Producto (`reset`)
+En implementaciones ingenuas del patrón Builder, reutilizar un builder produce problemas de *aliasing* (mutación accidental de instancias retornadas previamente). En esta solución:
+```java
+@Override
+public Pantalla getPantalla() {
+    Pantalla pantallaTerminada = this.pantalla;
+    this.reset(); // Deja el builder listo para una próxima construcción limpia
+    return pantallaTerminada;
+}
+```
+Esto asegura el desacoplamiento total entre el builder y el producto entregado.
+
+### 🛡️ Programación Defensiva (Invariantes del Director)
+Tanto en el constructor como en el método mutador `setBuilder` de `DirectorPantalla`, se valida explícitamente la integridad del builder mediante `Objects.requireNonNull`:
+```java
+public DirectorPantalla(PantallaBuilder builder) {
+    this.builder = Objects.requireNonNull(builder, "El builder no puede ser null");
+}
+
+public void setBuilder(PantallaBuilder builder) {
+    this.builder = Objects.requireNonNull(builder, "El builder no puede ser null");
+}
+```
+Esto evita fallos silenciosos o excepciones inesperadas (`NullPointerException`) en tiempo de ejecución.
+
+### 🏛️ Principios SOLID Aplicados
+* **Single Responsibility Principle (SRP)**: Cada clase tiene una única razón para cambiar. El director gestiona el algoritmo de montaje, los builders gestionan los datos de cada vista y la pantalla almacena su estado.
+* **Open/Closed Principle (OCP)**: Para añadir nuevas pantallas (por ejemplo `DashboardBuilder` o `LoginBuilder`), no se necesita modificar el `DirectorPantalla` ni el resto del código; basta con implementar `PantallaBuilder`.
+* **Dependency Inversion Principle (DIP)**: `DirectorPantalla` depende exclusivamente de la abstracción `PantallaBuilder`, nunca de implementaciones concretas como `PerfilBuilder` o `AjustesBuilder`.
+
+---
+
+## 🖥️ Ejecución y Salida por Consola
+
+### Salida esperada al ejecutar `Main`:
+
+```text
+---Pantalla---
+Título: Perfil
+Cabecera: Perfil del usuario
+Contenido: Nombre - email - fotografía
+Botón principal: Editar perfil
+
+
+
+---Pantalla---
+Título: Ajustes
+Cabecera: Configuración de la aplicación
+Contenido: Idioma - Tema - Notificaciones
+Botón principal: Guardar cambios
+```
+
+---
+
+## 🚀 Compilación y Ejecución Manual
+
+### Requisitos
+* JDK 17 o superior
+* Git
+
+### Comandos de terminal:
 
 ```bash
-# Compilar las clases en el directorio out
+# 1. Clonar el repositorio (si aplica)
+git clone https://github.com/RafaelGodoyGuia/ActividadBuilder.git
+cd ActividadBuilder
+
+# 2. Compilar el código fuente en el directorio de salida
 javac src/*.java -d out
 
-# Ejecutar la clase principal
+# 3. Ejecutar la clase principal
 java -cp out Main
 ```
 
 ---
-*Readme escrito por Antigravity CLI sobre el proyecto de Rafael Godoy Guía*
+
+## 📁 Estructura del Proyecto
+
+```text
+ActividadBuilder/
+├── .gitignore
+├── README.md
+├── ActividadBuilder.iml
+└── src/
+    ├── Pantalla.java          # Clase Producto
+    ├── PantallaBuilder.java   # Interfaz Builder
+    ├── PerfilBuilder.java     # Concrete Builder 1
+    ├── AjustesBuilder.java    # Concrete Builder 2
+    ├── DirectorPantalla.java  # Clase Director
+    └── Main.java              # Clase Cliente
+```
+
+---
+
+## 👤 Autor
+
+* **Rafael Godoy Guía** - *Metodología y Tecnología de la Programación (MTP)*
+* Repositorio: [RafaelGodoyGuia/ActividadBuilder](https://github.com/RafaelGodoyGuia/ActividadBuilder)
+
+---
+*Readme redactado por Antigravity CLI*
